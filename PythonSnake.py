@@ -6,10 +6,13 @@ import random
 import copy
 import ctypes
 
-# Code heavily inspired by some other implementations circulating the web, but I modified it  slighty to fit my needs.
+# Code heavily inspired by James Spencer's answer:
+# http://stackoverflow.com/questions/5174810/how-to-turn-off-blinking-cursor-in-command-window
+# , but I modified it  slighty to fit my needs.
 class _Cursor(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int),
                 ("visible", ctypes.c_byte)]
+
 def hide_cursor():
     cursor = _Cursor()
     handle = ctypes.windll.kernel32.GetStdHandle(-11)
@@ -18,8 +21,9 @@ def hide_cursor():
     ctypes.windll.kernel32.SetConsoleCursorInfo(handle, ctypes.byref(cursor))
 
 # Selfdescribing consants defining gameplay.
-boardWidth = 10
-boardHeight = 10
+boardWidth = 20
+boardHeight = 20
+underlineChar = "_"
 snakeChar = "x"
 pointChar = "o"
 backgroundChar = " "
@@ -51,8 +55,11 @@ direction = msvcrt.getch().decode('utf-8')
 # Main loop
 while 1:
     os.system("cls")
-    sys.stdout.write(str(len(snake))+"\n")
+    sys.stdout.write(str(len(snake))+"\n ")
     # Printing board
+    for each in range(boardWidth):
+        sys.stdout.write(underlineChar)
+    sys.stdout.write("\n|")
     for a in range(boardHeight):
         for b in range(boardWidth):
             if Position(b,a) in snake:
@@ -61,12 +68,21 @@ while 1:
                 sys.stdout.write(pointChar)
             else:
                 sys.stdout.write(backgroundChar)
-        sys.stdout.write("\n")
+        sys.stdout.write("|\n|")
+    for each in range(boardWidth):
+        sys.stdout.write(underlineChar)
+    sys.stdout.write("|\n")
     # Handling user input
     if msvcrt.kbhit():
         tempDirection = msvcrt.getch().decode('utf-8')
         if tempDirection in keys:
-            direction = tempDirection
+            if len(snake) == 1:
+                direction = tempDirection
+            elif direction in keys[:2]:
+                if tempDirection not in keys[:2]:
+                    direction = tempDirection
+            elif tempDirection in keys[:2]:
+                direction = tempDirection
     if direction == keys[0]:
         position.y=(position.y-1)%boardHeight
     elif direction == keys[1]:
